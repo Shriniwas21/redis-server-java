@@ -20,15 +20,16 @@ public class Main {
          // ensures that we don't run into 'Address already in use' errors
          serverSocket.setReuseAddress(true);
          // Wait for connection from client.
-         clientSocket = serverSocket.accept();
-         InputStream inputStream = clientSocket.getInputStream();
-         OutputStream outputStream = clientSocket.getOutputStream();
-         Scanner sc = new Scanner(inputStream);
-         while(sc.hasNextLine()) {
-          String nextLine = sc.nextLine();
-          if(nextLine.contains("PING")){
-            outputStream.write("+PONG\r\n".getBytes());
-          }
+         while(true){
+          clientSocket = serverSocket.accept();
+          Socket finalClientSocket = clientSocket;
+          new Thread(() -> {
+            try{
+              handleClient(finalClientSocket);
+            }catch(IOException e){
+              throw new RuntimeException(e);
+            }
+          }).start();
          }
          
        } catch (IOException e) {
@@ -42,5 +43,22 @@ public class Main {
            System.out.println("IOException: " + e.getMessage());
          }
        }
+  }
+
+  private static void handleClient(Socket clientSocket) throws IOException {
+    try{
+      InputStream inputstream = clientSocket.getInputStream();
+      OutputStream outputstream = clientSocket.getOutputStream();
+      Scanner sc = new Scanner(inputstream);
+      while (sc.hasNextLine()) {
+        String nextLine = sc.nextLine();
+        if(nextLine.contains("PING")){
+          outputstream.write("+PONG\r\n".getBytes());
+          outputstream.flush();
+        }
+      }
+    }finally{
+      clientSocket.close();
+    }
   }
 }
