@@ -55,6 +55,12 @@ public class Main {
         if(nextLine.contains("PING")){
           outputstream.write("+PONG\r\n".getBytes());
           outputstream.flush();
+        } else if(nextLine.contains("ECHO")){
+          String respHeader = sc.nextLine();
+          String respBody = sc.nextLine();
+          String response = respHeader + "\r\n" + respBody + "\r\n";
+          outputstream.write((response).getBytes());
+          outputstream.flush();
         }
       }
     }finally{
